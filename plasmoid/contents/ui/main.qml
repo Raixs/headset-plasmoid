@@ -6,132 +6,259 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 
 Item {
     id: main
-    
+
     property string deviceName
     property string batteryPercent
-    
-    //Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
-    Plasmoid.fullRepresentation:ColumnLayout {
-     anchors.centerIn: parent
-     anchors.fill: parent
-     spacing: 0
-     Layout.minimumWidth: units.gridUnit * 20
-     Layout.minimumHeight: units.gridUnit * 15
-    Rectangle {
-        color: "transparent"
-        height:5
-        Layout.fillWidth: true
-         Header{
-            id: label
-            //anchors.fill: parent
-            text: i18n("Headset Configuration")
-            //horizontalAlignment: Text.AlignHCenter
-        }
-        
-         
-        
-        
-    }
-    
-    Rectangle {
-        color: "transparent"
-        height: units.gridUnit * .5
-        Layout.fillWidth: true
+
+    Plasmoid.fullRepresentation: ColumnLayout {
+        anchors.centerIn: parent
+        anchors.fill: parent
+        spacing: units.gridUnit
+        Layout.minimumWidth: units.gridUnit * 20
+        Layout.minimumHeight: units.gridUnit * 40
+
+        // Encabezado principal
         PlasmaComponents.Label {
-            height:1
-            id: sidetone_valuetest
-            text: i18n("Device: " + deviceName)
-            anchors.centerIn: parent
+            id: mainHeader
+            text: i18n("Configuración del Headset")
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            Layout.fillWidth: true
         }
-    }
-    
-    Rectangle {
-        color: "transparent"
-       height: units.gridUnit * .5
-        Layout.fillWidth: true
+
+        // Información del dispositivo
         PlasmaComponents.Label {
-            height: 1
-            id: deviceString
-            text: i18n(batteryPercent)
-            anchors.centerIn: parent
+            id: deviceInfo
+            text: i18n("Dispositivo: ") + deviceName
+            Layout.fillWidth: true
         }
-    }
-    
-    
-     Rectangle {
-        color: "transparent"
-        height: units.gridUnit * .5
-        Layout.fillWidth: true
-         Header{
-            id: label_sidetone
-            //anchors.fill: parent
-            text: i18n("Set Sidetone")
-            //horizontalAlignment: Text.AlignHCenter
+
+        PlasmaComponents.Label {
+            id: batteryInfo
+            text: i18n("Nivel de batería: ") + batteryPercent
+            Layout.fillWidth: true
         }
-        
-    }
-    
-    Rectangle {
-        color: "transparent"
-        height: units.gridUnit * .1
-        Layout.fillWidth: true
-        Layout.topMargin: 5
-        
+
+        // Sección para ajustar el Sidetone
+        PlasmaComponents.Label {
+            text: i18n("Ajustar Sidetone")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
         PlasmaComponents.Slider {
-            id: toneSlider
-           width: 280
-            anchors.centerIn: parent
-            orientation: Qt.Horizontal
+            id: sidetoneSlider
             minimumValue: 0
             maximumValue: 128
-            stepSize: 2
-            onPressedChanged: {
-                cmd.exec("headsetcontrol -s" + toneSlider.value)
+            stepSize: 1
+            value: 64
+            Layout.fillWidth: true
+            onValueChanged: {
+                sidetoneValue.text = i18n("Valor: ") + value
+                cmd.exec("headsetcontrol -s " + value)
             }
         }
-        
-        
-        
-    }
-    
-    
-    Rectangle {
-        color: "transparent"
-       height: units.gridUnit * .1
-        Layout.fillWidth: true
-        Layout.bottomMargin: 5
+
         PlasmaComponents.Label {
-            id: sidetone_value
-            height: 1
-            anchors.centerIn: parent
-            verticalAlignment: Text.AlignTop
-            text: toneSlider.value
+            id: sidetoneValue
+            text: i18n("Valor: ") + sidetoneSlider.value
+            Layout.fillWidth: true
+        }
+
+        // Sección para ajustar el Tiempo de Inactividad
+        PlasmaComponents.Label {
+            text: i18n("Ajustar Tiempo de Inactividad (minutos)")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Slider {
+            id: inactiveTimeSlider
+            minimumValue: 0
+            maximumValue: 90
+            stepSize: 1
+            value: 0
+            Layout.fillWidth: true
+            onValueChanged: {
+                inactiveTimeValue.text = i18n("Valor: ") + value
+                cmd.exec("headsetcontrol -i " + value)
+            }
+        }
+
+        PlasmaComponents.Label {
+            id: inactiveTimeValue
+            text: i18n("Valor: ") + inactiveTimeSlider.value
+            Layout.fillWidth: true
+        }
+
+        // Sección para ajustar el ChatMix
+        PlasmaComponents.Label {
+            text: i18n("Ajustar ChatMix")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Slider {
+            id: chatMixSlider
+            minimumValue: 0
+            maximumValue: 128
+            stepSize: 1
+            value: 64
+            Layout.fillWidth: true
+            onValueChanged: {
+                chatMixValue.text = i18n("Valor: ") + value
+                cmd.exec("headsetcontrol -m " + value)
+            }
+        }
+
+        PlasmaComponents.Label {
+            id: chatMixValue
+            text: i18n("Valor: ") + chatMixSlider.value
+            Layout.fillWidth: true
+        }
+
+        // Sección para el Limitador de Volumen
+        PlasmaComponents.Label {
+            text: i18n("Limitador de Volumen")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Switch {
+            id: volumeLimiterSwitch
+            checked: false
+            text: checked ? i18n("Activado") : i18n("Desactivado")
+            Layout.fillWidth: true
+            onCheckedChanged: {
+                cmd.exec("headsetcontrol --volume-limiter " + (checked ? "1" : "0"))
+            }
+        }
+
+        // Sección para seleccionar el Preset del Ecualizador
+        PlasmaComponents.Label {
+            text: i18n("Preset de Ecualizador")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.ComboBox {
+            id: equalizerPresetCombo
+            model: [i18n("Predeterminado"), i18n("Preset 1"), i18n("Preset 2"), i18n("Preset 3")]
+            currentIndex: 0
+            Layout.fillWidth: true
+            onCurrentIndexChanged: {
+                cmd.exec("headsetcontrol -p " + currentIndex)
+            }
+        }
+
+        // Sección para ajustar el Volumen del Micrófono
+        PlasmaComponents.Label {
+            text: i18n("Volumen del Micrófono")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Slider {
+            id: microphoneVolumeSlider
+            minimumValue: 0
+            maximumValue: 128
+            stepSize: 1
+            value: 64
+            Layout.fillWidth: true
+            onValueChanged: {
+                microphoneVolumeValue.text = i18n("Valor: ") + value
+                cmd.exec("headsetcontrol --microphone-volume " + value)
+            }
+        }
+
+        PlasmaComponents.Label {
+            id: microphoneVolumeValue
+            text: i18n("Valor: ") + microphoneVolumeSlider.value
+            Layout.fillWidth: true
+        }
+
+        // Sección para ajustar el Brillo del LED de Mute del Micrófono
+        PlasmaComponents.Label {
+            text: i18n("Brillo LED Mute Micrófono")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Slider {
+            id: micMuteLedSlider
+            minimumValue: 0
+            maximumValue: 3
+            stepSize: 1
+            value: 3
+            Layout.fillWidth: true
+            onValueChanged: {
+                micMuteLedValue.text = i18n("Valor: ") + value
+                cmd.exec("headsetcontrol --microphone-mute-led-brightness " + value)
+            }
+        }
+
+        PlasmaComponents.Label {
+            id: micMuteLedValue
+            text: i18n("Valor: ") + micMuteLedSlider.value
+            Layout.fillWidth: true
+        }
+
+        // Sección para los ajustes de Bluetooth
+        PlasmaComponents.Label {
+            text: i18n("Ajustes de Bluetooth")
+            font.bold: true
+            Layout.topMargin: units.gridUnit * 2
+            Layout.fillWidth: true
+        }
+
+        PlasmaComponents.Switch {
+            id: btPowerSwitch
+            checked: true
+            text: checked ? i18n("Bluetooth al encender: Activado") : i18n("Bluetooth al encender: Desactivado")
+            Layout.fillWidth: true
+            onCheckedChanged: {
+                cmd.exec("headsetcontrol --bt-when-powered-on " + (checked ? "1" : "0"))
+            }
+        }
+
+        PlasmaComponents.ComboBox {
+            id: btCallVolumeCombo
+            model: [i18n("0"), i18n("1"), i18n("2")]
+            currentIndex: 0
+            Layout.fillWidth: true
+            onCurrentIndexChanged: {
+                cmd.exec("headsetcontrol --bt-call-volume " + currentIndex)
+            }
         }
     }
-    
-    PlasmaCore.DataSource {
-            id: test
-            engine: "executable"
 
-            connectedSources: ["headsetcontrol -b |  grep -i found  | sed  's/Found //g' | tr -d '!'"]
-            onNewData: {
-                main.deviceName = data.stdout
+    // DataSource para obtener información del dispositivo y batería
+    PlasmaCore.DataSource {
+        id: deviceDataSource
+        engine: "executable"
+        connectedSources: ["headsetcontrol -b"]
+        interval: 5000
+        onNewData: {
+            var output = data["stdout"];
+            var lines = output.split("\n");
+            for (var i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith("Found")) {
+                    main.deviceName = lines[i].replace("Found ", "").replace("!", "");
+                } else if (lines[i].startsWith("    Level:")) {
+                    main.batteryPercent = lines[i].replace("    Level: ", "");
+                }
             }
         }
-        
-    PlasmaCore.DataSource {
-            id: whoami
-            engine: "executable"
+    }
 
-            connectedSources: ["headsetcontrol -b |  grep -i battery"]
-            onNewData: {
-                main.batteryPercent = data.stdout
-            }
-            interval: 5000
-        }
-    
-}
-
+    // DataSource para ejecutar comandos
     PlasmaCore.DataSource {
         id: cmd
         engine: "executable"
@@ -150,7 +277,5 @@ Item {
         signal exited(int exitCode, int exitStatus, string stdout, string stderr)
     }
 
-    Plasmoid.toolTipSubText: {
-        "Headset Configuration"
-    }
+    Plasmoid.toolTipSubText: i18n("Configuración del Headset")
 }
