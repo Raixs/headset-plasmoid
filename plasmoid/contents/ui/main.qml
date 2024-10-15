@@ -239,21 +239,19 @@ Item {
         }
     }
 
-    // DataSource para obtener información del dispositivo y batería
+    // DataSource para obtener información del dispositivo y batería en formato JSON
     PlasmaCore.DataSource {
         id: deviceDataSource
         engine: "executable"
-        connectedSources: ["headsetcontrol -b"]
+        connectedSources: ["headsetcontrol -o json"]
         interval: 5000
         onNewData: {
             var output = data["stdout"];
-            var lines = output.split("\n");
-            for (var i = 0; i < lines.length; i++) {
-                if (lines[i].startsWith("Found")) {
-                    main.deviceName = lines[i].replace("Found ", "").replace("!", "");
-                } else if (lines[i].startsWith("    Level:")) {
-                    main.batteryPercent = lines[i].replace("    Level: ", "");
-                }
+            var jsonData = JSON.parse(output);
+            if (jsonData.device_count > 0) {
+                var device = jsonData.devices[0];
+                main.deviceName = device.device;
+                main.batteryPercent = device.battery.level + "%";
             }
         }
     }
